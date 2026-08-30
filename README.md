@@ -1,3 +1,5 @@
+项目需求接口文档在Apifox里
+
 通过swagger-knife4j生成的接口文档在server-config，前端/doc.html访问。登录调试可以拿到新token
 
 接口文档里的全局参数设置token有效时间改成了24h。实现：server-resources-application.yml里admin-ttl: 
