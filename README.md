@@ -6,26 +6,38 @@ sky-take-out（父工程，只管版本管理）
           （不依赖任何人）   （不依赖任何人）   （依赖上面两个兄弟）
 持久层是啥？ 是指java项目开发的三层之一 三层：控制层（接待请求，转交任务，返回结果）-业务层（逻辑处理）-持久层（操作数据库 执行SQL）
 
+
 !!根据接口文档开发大模块的功能基本流程：
-server-controller.admin包下新建 “模块名”Controller（J） 再根据接口文档的提示编写模块里每个功能的请求映射注解{spring MVC}，顺手建好swagger的接口测试入口，然后编写调用接口·日志·返回。
-server-service包下新建 “模块名”Service（I） 这里编写的是接口，每个新建接口右上角可以直接去到实现类。接着server-service-impl包下新建每个接口的实现 “模块名”Serviceimpl（J）。
-server-mapper包下新建 “模块名”Mapper 这里编写的是操控SQL的接口，实现类在server-resources-mapper包下 “模块名”Mapper.xml ；如果功能的业务逻辑差别大，可以单独把功能分出来比如在 “模块名”Mapper里分出 “功能名1”Mapper “功能名2”Mapper ...这些单独分出的也是操控SQL的接口，但是他不依赖xml去实现，要在本类下去注解实现（一般是复用不高或是简单的SQL语句）
+server-controller.admin包下新建 “模块名”Controller（J） 再根据接口文档的提示编写模块里每个功能的请求映射注解{spring MVC}，顺手建好swagger的接口测试入口，然后编写调用接口·日志·返回。||
+
+server-service包下新建 “模块名”Service（I） 这里编写的是接口，每个新建接口右上角可以直接去到实现类。接着server-service-impl包下新建每个接口的实现 “模块名”Serviceimpl（J）。||
+
+server-mapper包下新建 “模块名”Mapper 这里编写的是操控SQL的接口，实现类在server-resources-mapper包下 “模块名”Mapper.xml ；如果功能的业务逻辑差别大，可以单独把功能分出来比如在 “模块名”Mapper里分出 “功能名1”Mapper “功能名2”Mapper ...这些单独分出的也是操控SQL的接口，但是他不依赖xml去实现，要在本类下去注解实现（一般是复用不高或是简单的SQL语句）||
+
 
 项目需求接口文档在Apifox里
 
+
 通过swagger-knife4j生成的接口文档在server-config，前端/doc.html访问。登录调试可以拿到新token
+
 
 接口文档里的全局参数设置token有效时间改成了24h。实现：server-resources-application.yml里admin-ttl: 
 
+
 server-service-EmployeeServicelmpl里添加了 md5加密，新增员工功能。 还有个TODO（已解决）。
+
 
 server-handler-GlobalExcptionHandler里添加了 处理SQL异常，新增重复员工抛出错误，程序不再崩溃
 
+
 TODO内容：利用ThreadLocal线程实现动态新增员工 将登录者的id放入线程，谁登录了就取谁的id，使得系统操作可追溯
+
 
 添加了员工账号分页查询功能  DTO的东西 SQL语句符号的应用 用了个mybatis的插件“Pagehelper”
 
+
 添加了启用禁用员工账号功能 SQL语句符号的应用
+
 
 写调用接口的东西有些注解不太懂？
 
