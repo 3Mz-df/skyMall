@@ -8,6 +8,7 @@ sky-take-out（父工程，只管版本管理）
 
 
 !!根据接口文档开发大模块的功能基本流程：
+
 server-controller.admin包下新建 “模块名”Controller（J） 再根据接口文档的提示编写模块里每个功能的请求映射注解{spring MVC}，顺手建好swagger的接口测试入口，然后编写调用接口·日志·返回。||
 
 server-service包下新建 “模块名”Service（I） 这里编写的是接口，每个新建接口右上角可以直接去到实现类。接着server-service-impl包下新建每个接口的实现 “模块名”Serviceimpl（J）。||
