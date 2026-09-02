@@ -121,6 +121,47 @@ return Result.success();
 分类`分页查询：
   分类多了以后（比如几百个），不可能一次性全显示在管理页面里，得一页一页地看。这个方法就是干这个的：
   前端说："我要第 2 页，每页 10 条，名称里带'菜'字的分类" → 后端查数据库 → 返回"总共有多少条 + 当前这一页的数据"。
+public Result<PageResult> page(CategoryPageQueryDTO categoryPageQueryDTO)
+拆成四块：
+  ① Result<PageResult>：返回值类型。Result 是统一返回结果的壳子（code/msg/data），而泛型 <PageResult> 表示这次 data 里装的是 PageResult 类型的数据。
+  ② page：方法名，表示"按页查询"。
+  ③ CategoryPageQueryDTO：专门用来装查询条件的 DTO，看它的字段：
+     private int page;       // 页码（第几页）
+     private int pageSize;   // 每页记录数（一页显示几条）
+     private String name;    // 分类名称（按名称模糊搜索）
+     private Integer type;   // 分类类型（1 菜品分类 2 套餐分类）
+  ④ 注意：这个参数前面没有 @RequestBody！ 这是和上一个方法最大的区别：
+     新增用 POST，数据放在**请求体（body）**里，所以要用 @RequestBody 去 body 里取；
+     查询用 GET，数据是跟在 URL 后面的，长这样：/admin/category/page?page=2&pageSize=10&name=菜&type=1
+      ? 后面的部分叫 Query String（查询字符串），格式是 键=值，多个用 & 连接。
+      Spring 会自动把 URL 里的参数按名字对应填进 DTO 的字段里（page=2 → page 字段 = 2，name=菜 → name 字段 = "菜"）。这叫参数绑定，所以 GET 查询不需要任何注解。
+      
+log.info("分类分页查询:{}, categoryPageQueryDTO");
+  意图是打印日志，记录前端传了什么查询条件。     
+
+PageResult pageResult = categoryService.pageQuery(categoryPageQueryDTO);
+  调用 Service 层去查询。把"查询条件"传进去，Service 查完数据库后返回一个 PageResult 对象。
+  PageResult 是"分页查询结果的封装类"，看它的字段：
+   private long total;   // 总记录数（数据库里符合条件的分类一共有多少条）
+   private List records; // 当前页数据集合（本页要显示的那些分类对象）
+    为什么要把结果封装成 {total, records} 两个字段？因为前端分页组件（页码条）需要两个信息才能渲染：
+    total：总条数 → 用来算"一共有几页"（比如 105 条 ÷ 每页 10 条 = 11 页）；
+    records：本页实际数据 → 用来渲染表格里的行。
+
+return Result.success(pageResult);
+  调 Result.success(带参数版本)，把 pageResult 塞进 data 字段
+
+用户在管理页面点"第 2 页"，输入搜索条件
+   ↓ 前端发 GET /admin/category/page?page=2&pageSize=10&name=菜
+   ↓ Spring 根据 @GetMapping("/page") 找到 page 方法
+   ↓ 自动把 URL 参数绑定到 CategoryPageQueryDTO 对象
+   ↓ log.info 打日志（当前这行有 bug，占位符没生效）
+   ↓ categoryService.pageQuery() 执行 SQL：LIMIT 限定范围 + COUNT 统计总数
+   ↓ 返回 PageResult{total: 总条数, records: 本页数据}
+   ↓ Result.success(pageResult) 包装成统一格式
+前端收到 {code:1, data:{total, records}}，渲染表格和页码条
+
+
 
 ****************************************************************************************************************************************
 
