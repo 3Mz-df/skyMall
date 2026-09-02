@@ -168,8 +168,72 @@ return Result.success(pageResult);
 
 
 启用禁用分类：
+  管理页面的分类列表里，每一行有个"启用/禁用"开关。点一下开关，前端就告诉后端："把 id 为 5 的分类的状态改成 1（启用）"。这个方法负责接收这两个信息，交给 Service 去更新数据库。
+public Result<String> startOrStop(@PathVariable("status")Integer status, Long id)
+  拆成四块：
+  ① Result<String>：返回值，统一返回结果的壳子（成功与否 + data），这里不返回数据，所以 success() 空参调用。
+  ② startOrStop：方法名，见名知义——"启动或停止"，即启用或禁用。
+  ③ @PathVariable("status") Integer status：第一个入参，重点讲：
+    @PathVariable = 路径变量注解：告诉 Spring"去 URL 路径里把 {status} 坑里的值取出来，装进这个参数"。
+    还记得项目里那条绑定规则吗：@PathVariable 必须和路径里的占位符 {xxx} 配合使用。
+    路径 "/status/{status}" 里挖了 {status} 这个坑，注解 @PathVariable("status") 就负责把坑里的值取出来——坑名和注解里的名字必须对得上。
+    如果前端访问 /status/1，Spring 就把 1 转成数字装进 status 参数里。
+    Integer：整型包装类。status 的值只有 1（启用）和 0（禁用）两种，正好对应项目里 StatusConstant 常量类的定义。
+  ④ Long id：第二个入参。注意它前面没有任何注解！因为 id 不来自路径，而是来自 URL 问号后面（和分页查询、删除一样），Spring 按参数名自动绑定。实际请求长这样：
+    POST /admin/category/status/1?id=5
+                          ↑     ↑
+                    路径变量    查询字符串参数
+   一个方法两个参数，来自两个完全不同的位置，这是这个方法的精髓。
+
+categoryService.startOrStop(status,id);
+  把两个实参（status、id）按位置传给 Service 层的同名方法。
+
+return Result.success();
+  无参调用，只标记"成功"，不带数据。前端收到 {code:1} 就知道开关切换成功，刷新列表即可。
+
+管理员在列表里点 id=5 的分类的"启用"开关
+   ↓ 前端发 POST /admin/category/status/1?id=5
+   ↓ Spring 匹配 @PostMapping("/status/{status}")
+   ↓ @PathVariable("status") 从路径取出 1 → 装进 status 参数
+   ↓ 自动绑定从 ?id=5 取出 5 → 装进 id 参数
+   ↓ categoryService.startOrStop(1, 5) → Service 校验 → Mapper 执行 UPDATE
+   ↓ return Result.success() → 前端收到 {code:1}
+
+
+根据类型查询分类：
+  它的用途和分页查询完全不同。想象这个场景：商家在后台新增一道菜品时，页面上要让他选"这道菜属于哪个分类"，此时需要一个下拉框，列出所有"菜品分类"（type=1）。
+  这个方法就是干这个的：
+  前端说："把所有 type=1（菜品分类） 的分类都给我" → 后端返回一个列表（不带分页，一次性全给，因为下拉框要显示全部选项）。
+public Result<List<Category>> list(Integer type)
+  这行有两个新知识点，拆开讲：
+  ① Result<List<Category>>——泛型的嵌套
+    之前见过 Result<String>（data 里装字符串）、Result<PageResult>（data 里装分页对象）；
+    这次是 Result<List<Category>>，读作："Result 的 data 里装的是一个 List，这个 List 里面每个元素都是 Category 对象"。
+    List 是集合（Collection）：一个"能装很多个元素的袋子"，有序、可以重复。数据库里查出来 10 条分类，就装成 10 个 Category 对象放进一个 List 里。
+    Category 是实体类（Entity）：和数据库 category 表一一对应，表里有什么字段它有什么字段（id、type、name、sort、status、时间、创建人……），每一行数据就是一个 Category 对象。
+    泛型可以一层套一层：List<Category> 表示"装 Category 的 List"，外层 Result<...> 表示"data 字段装这个 List"。尖括号里套尖括号，就像快递箱子套快递箱子：Result 是外箱，List 是中箱，Category 是里面的物品。
+  ② Integer type——入参，没有注解
+    和分页查询一样，type 来自 URL 问号后面：/list?type=1，Spring 按参数名自动绑定到 type 变量；
+    Integer 是整型包装类，值只可能是 1 或 2（1=菜品分类，2=套餐分类）。
+    
+List<Category> list = categoryService.list(type);
+  拆成三部分：
+  List<Category> list：声明一个局部变量，类型是"装 Category 的 List"，名字叫 list；
+  =：把右边的查询结果赋值给左边的变量；
+  categoryService.list(type)：调用 Service 层，把 type 传进去，Service 查数据库后返回一个装满了 Category 对象的 List。
+  执行完这行，list 变量里就有数据了，比如 5 个菜品分类对象。
   
- 
+return Result.success(list);
+  调用 success(带参数) 版本，把整个 list（装分类对象的集合）塞进 Result 的 data 字段；
+  data 是一个 JSON 数组（[ ] 包起来），前端拿到后直接循环渲染成下拉框的选项。
+
+商家点开"新增菜品"页面，前端需要菜品分类下拉框
+   ↓ 前端发 GET /admin/category/list?type=1
+   ↓ Spring 匹配 @GetMapping("/list")，自动绑定 type=1
+   ↓ categoryService.list(1) → Mapper 执行 SELECT ... WHERE type = 1
+   ↓ 返回 List<Category>（若干分类对象）
+   ↓ Result.success(list) 塞进 data
+前端收到 {code:1, data:[分类1,分类2,...]}，渲染下拉框
 ****************************************************************************************************************************************
 
 ------------------
