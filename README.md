@@ -7,6 +7,18 @@ sky-take-out（父工程，只管版本管理）
           （不依赖任何人）   （不依赖任何人）   （依赖上面两个兄弟）
 持久层是啥？ 是指java项目开发的三层之一 三层：控制层（接待请求，转交任务，返回结果）-业务层（逻辑处理）-持久层（操作数据库 执行SQL）
 
+
+整体开发顺序
+
+① 看接口文档 → 确定 URL、请求方式、入参、出参
+② sky-pojo 写 DTO（入参）/ VO（出参），Entity 一般资料已给
+③ Controller 写方法 + @ApiOperation + log.info + Result.success()
+④ Alt+Enter 生成 Service 接口方法        ← 快捷创建接口
+⑤ Ctrl+I 在 Impl 生成实现骨架，填业务逻辑
+⑥ Mapper 写方法 + @Insert/@Delete 或 XML
+⑦ resources/mapper/*.xml 写动态 SQL（复杂查询）
+⑧ 重启 → Knife4j 文档 http://localhost:8080/doc.html 调试
+
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 !!根据接口文档开发大模块的功能基本流程：Controller里写调用接口的东西 --> Service里写接口调用实现类（方法）--> Serviceimpl里写实现类（方法）|| 具体如下：
@@ -239,7 +251,163 @@ return Result.success(list);
 ------------------
 server-service包下新建 “模块名”Service（I） 这里编写的是接口，每个新建接口右上角可以直接去到实现类。接着server-service-impl包下新建每个接口的实现 “模块名”Serviceimpl（J）。||
 --------------------------
+接口如下：
+public interface CategoryService {
+    /**
+     * 新增分类
+      * @param categoryDTO
+     */
+    void save(CategoryDTO categoryDTO);
+    
+    /**
+     * 分类分页查询
+     * @param categoryPageQueryDTO
+     * @return
+     */
+    PageResult pageQuery(CategoryPageQueryDTO categoryPageQueryDTO);
 
+    /**
+     * 根据id删除分类
+     * @param id
+     */
+    void deleteById(Long id);
+
+    /**
+     * 修改分类
+     * @param categoryDTO
+     */
+    void update(CategoryDTO categoryDTO);
+
+    /**
+     * 启用禁用分类
+     * @param status
+     * @param id
+     */
+    void startOrStop(Integer status, Long id);
+
+
+    /**
+     * 根据类型查询分类
+     * @param type
+     * @return
+     */
+    List<Category> list(Integer type);   
+}
+接口的话可以在Controller里点标红的方法名Alt+Enter直接生成
+
+
+然后是实现类（impl） 架子：
+/**
+ * 分类业务层
+ */
+@Service
+@Slf4j
+public class CategoryServiceImpl implements CategoryService{
+    @Autowired
+    private CategoryMapper categoryMapper;
+    @Autowired
+    private DishMapper dishMapper;
+    @Autowired
+    private SetmealMapper setmealMapper;
+   
+ categoryMapper 变量，实际指向的是 MyBatis 动态生成的代理对象，不是普通 Java 对象。
+上面这部分架子手写（声明依赖）
+
+还有六个接口的实现类架子可以在...{中的空白位置ctrl+I自动生成
+
+    @Override
+    public void save(CategoryDTO categoryDTO) {
+
+    }
+
+    @Override
+    public PageResult pageQuery(CategoryPageQueryDTO categoryPageQueryDTO) {
+        return null;
+    }
+
+    @Override
+    public void deleteById(Long id) {
+
+    }
+
+    @Override
+    public void update(CategoryDTO categoryDTO) {
+
+    }
+
+    @Override
+    public void startOrStop(Integer status, Long id) {
+
+    }
+
+    @Override
+    public List<Category> list(Integer type) {
+        return Collections.emptyList();
+    }
+    
+没有重写需求把@Override删了就好
+
+
+六个实现：
+
+    /**
+     * 新增分类
+     * @param categoryDTO
+     */
+    public void save(CategoryDTO categoryDTO) {
+        Category category = new Category();
+        //属性拷贝
+        BeanUtils.copyProperties(categoryDTO, category);
+
+        //分类状态默认为禁用状态0
+        category.setStatus(StatusConstant.DISABLE);
+
+
+        //设置创建时间，修改时间，创建人，修改人
+        category.setCreateTime(LocalDateTime.now());
+        category.setUpdateTime(LocalDateTime.now());
+        category.setCreateUser(BaseContext.getCurrentId());
+        category.setUpdateUser(BaseContext.getCurrentId());
+
+        categoryMapper.insert(category);
+    }
+
+    
+    对于属性拷贝
+    BeanUtils.copyProperties(源, 目标);
+    它省去了大量的 get set 把 DTO 的东西塞进了空的 category 里
+
+
+    对于状态
+    setStatus(...) 是 Lombok @Data 生成的 setter，作用是给 category 的 status 字段赋值。
+    StatusConstant 是什么？ 项目自己写的常量类：
+     public class StatusConstant {
+     //启用
+     public static final Integer ENABLE = 1;
+     //禁用
+     public static final Integer DISABLE = 0;
+     }
+
+
+     对于设置时间
+     LocalDateTime 是什么？ 
+     Java 8 引入的日期时间类
+
+
+     对于设置操作人
+     要存的是什么？ 
+     数据库 create_user 列存的是员工的 id（一个 Long 数字），表示「这条分类是哪个员工创建的」。
+     问题来了：这个 id 从哪来？
+     方法签名 save(CategoryDTO categoryDTO) 里，DTO 只有 id/type/name/sort，根本没有"当前登录人"这个信息。难道要让前端传？
+     ❌ 绝对不行！ 前端传的话，我可以随便改成 "createUser": 1，把功劳记在老板头上。
+     ✅ 正确答案：从 JWT 令牌里解析出来。
+     
+     BaseContext 是什么？
+     这就是一个全局的"临时储物柜"，专门存"当前是谁在操作"。
+
+
+     categoryMapper.insert(category);
+     存入数据库
 ****************************************************************************************************************************************
 
 ------------------
