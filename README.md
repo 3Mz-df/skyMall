@@ -451,21 +451,29 @@ return new PageResult(page.getTotal(), page.getResult());
         
         categoryMapper.deleteById(id);
   }
+作用分析：前端想删掉某个分类，但这个分类下面可能挂着「菜品」或「套餐」，所以代码先数一数：分类下有没有菜、有没有套餐。只要有，就"报错拒绝删除"；都没有，才真正执行删除。
 
 public void deleteById(Long id) {
-  
+  访问修饰符 返回类型 方法名（ 参数类型 参数名 ）
+  🤔删除的操作不需要返回数据给前端，判断的结果通过抛异常传递就好，这里的 Long 是对象版的 long 它能表示null，一般主键都用它
 
 Integer count = dishMapper.countByCategoryId(id);
         if(count > 0){
             throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_DISH);
         }
-  2
+  包装类型（对象版的int，用来装整数，能表示null） 变量名 = 已经注入的对象.方法名(要查的分类编号)
+  🤔这里的 dishMapper 关联到 DishMapper ，DishMapper是个接口，不能通过 new 来赋值，
+     要提前在本类里注入也就是开头的@Autowired（Spring 自动把 MyBatis 生成的实现对象赋给你的变量，不注入的话变量是 null，调用方法会抛出空指针异常），
+     注入的时候后面是跟着写变量名的也就是 dishMapper 这个变量就指向前面那个接口了。
+     前面的categoryMapper也是一样的
+     dishMapper 也是变量（引用），它指向 MyBatis 生成的代理对象。变量是"门牌"，对象是"门后的人"。我们通过变量找到对象，再调用对象的方法。变量本身不是对象，但没有变量你就找不到对象。
 
 count = setmealMapper.countByCategoryId(id);
         if(count > 0){
             throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_SETMEAL);
             } 
-  2            
+  一样的同理
+  🤔
 ****************************************************************************************************************************************
 
 ------------------
