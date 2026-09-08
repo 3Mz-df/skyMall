@@ -473,7 +473,14 @@ count = setmealMapper.countByCategoryId(id);
             throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_SETMEAL);
             } 
   一样的同理
-  🤔
+  🤔ttttttttttttttttttt
+
+throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_SETMEAL);
+  抛异常 
+  🤔基本固定  throw new 异常类(消息常量)，但要写它之前必须先准备好：
+  自定义异常类 DeletionNotAllowedException（继承 BaseException）
+  消息常量类 MessageConstant 里定义对应常量
+  全局异常处理器 GlobalExceptionHandler 来捕获并返回给前端。
 ****************************************************************************************************************************************
 
 ------------------
