@@ -253,6 +253,7 @@ server-service包下新建 “模块名”Service（I） 这里编写的是接�
 --------------------------
 接口如下：
 public interface CategoryService {
+
     /**
      * 新增分类
       * @param categoryDTO
@@ -349,8 +350,8 @@ public class CategoryServiceImpl implements CategoryService{
 
 
 六个实现：
-
-    /**
+1.
+  /**
      * 新增分类
      * @param categoryDTO
      */
@@ -358,27 +359,19 @@ public class CategoryServiceImpl implements CategoryService{
         Category category = new Category();
         //属性拷贝
         BeanUtils.copyProperties(categoryDTO, category);
-
         //分类状态默认为禁用状态0
         category.setStatus(StatusConstant.DISABLE);
-
-
         //设置创建时间，修改时间，创建人，修改人
         category.setCreateTime(LocalDateTime.now());
         category.setUpdateTime(LocalDateTime.now());
         category.setCreateUser(BaseContext.getCurrentId());
         category.setUpdateUser(BaseContext.getCurrentId());
-
         categoryMapper.insert(category);
     }
-
-    
-    对于属性拷贝
+对于属性拷贝=================================================================
     BeanUtils.copyProperties(源, 目标);
     它省去了大量的 get set 把 DTO 的东西塞进了空的 category 里
-
-
-    对于状态
+对于状态=================================================================
     setStatus(...) 是 Lombok @Data 生成的 setter，作用是给 category 的 status 字段赋值。
     StatusConstant 是什么？ 项目自己写的常量类：
      public class StatusConstant {
@@ -387,27 +380,53 @@ public class CategoryServiceImpl implements CategoryService{
      //禁用
      public static final Integer DISABLE = 0;
      }
-
-
-     对于设置时间
+对于设置时间=================================================================
      LocalDateTime 是什么？ 
      Java 8 引入的日期时间类
-
-
-     对于设置操作人
+对于设置操作人=================================================================
      要存的是什么？ 
      数据库 create_user 列存的是员工的 id（一个 Long 数字），表示「这条分类是哪个员工创建的」。
      问题来了：这个 id 从哪来？
      方法签名 save(CategoryDTO categoryDTO) 里，DTO 只有 id/type/name/sort，根本没有"当前登录人"这个信息。难道要让前端传？
      ❌ 绝对不行！ 前端传的话，我可以随便改成 "createUser": 1，把功劳记在老板头上。
      ✅ 正确答案：从 JWT 令牌里解析出来。
-     
      BaseContext 是什么？
      这就是一个全局的"临时储物柜"，专门存"当前是谁在操作"。
-
-
-     categoryMapper.insert(category);
+     categoryMapper.insert(category);=================================================================
      存入数据库
+
+2.
+  /**
+     * 分页查询
+     * @param categoryPageQueryDTO
+     * @return
+     */
+    public PageResult pageQuery(CategoryPageQueryDTO categoryPageQueryDTO) {
+        PageHelper.startPage(categoryPageQueryDTO.getPage(), categoryPageQueryDTO.getPageSize());
+        Page<Category> page = categoryMapper.pageQuery(categoryPageQueryDTO);
+        return new PageResult(page.getTotal(), page.getResult());
+    }
+    
+public PageResult pageQuery(CategoryPageQueryDTO categoryPageQueryDTO) {
+  定义分页查询方法，返回值给到PageResult，分页查询DTO当参数类型，后面跟个对象名后面用(里面的装的查询条件)
+  🤔注意看需求确定返回值
+  
+PageHelper.startPage(categoryPageQueryDTO.getPage(), categoryPageQueryDTO.getPageSize()); 
+  工具类名.方法名（调用了 Mybatis 的插件的方法），方法的参数用创好的对象去调用get方法拿到（DTO里的东西取出来）
+  🤔startPage 内部会把 (1, 10)《表示的是 第一页，每页10条》 这两个数存到一个叫 ThreadLocal（线程私有的储物柜）里。
+  它的作用是：记住这个请求要分页，等下一条 SQL 执行时，自动帮它拼接分页语句。
+  所以 第 67 行和第 68 行必须紧接着执行——它只管"下一条"查询，管完就自动清空，不会影响后面其他查询。
+
+Page<Category> page = categoryMapper.pageQuery(categoryPageQueryDTO);
+  变量类型<泛型> 变量名（存查询结果） = 这里的东西就存到page里，调用的是mapper接口的方法，参数DTO给（查询条件）
+  🤔这里的Page是PageHelper自带的的类，泛型表示结果每行数据都是Category类型
+
+return new PageResult(page.getTotal(), page.getResult());
+  return返回结果给controller调用者，new一个对象（在内存里造个PageResult盒子），调用PageResult构造方法（因为类上标了 @AllArgsConstructor，自动生成了一个"两个参数全要"的构造方法）
+  page分页查询的原始结果，getTotal()取出总记录数（比如数据库里 category 表一共有 100 条），getResult()取出当前页的数据集合（比如第 1 页那 10 条 Category 对象组成的 List）
+  🤔多包一层 PageResult，不直接返回 Page， 因为 Page 是 PageHelper 插件的类型，和第三方插件绑死了；
+     项目里统一用自己定义的 PageResult（total + records），前端拿到的数据结构永远一致，解耦、规范。
+     最后return是要new一个对象去装返回结果的，不new就是个类
 ****************************************************************************************************************************************
 
 ------------------
