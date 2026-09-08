@@ -427,6 +427,45 @@ return new PageResult(page.getTotal(), page.getResult());
   🤔多包一层 PageResult，不直接返回 Page， 因为 Page 是 PageHelper 插件的类型，和第三方插件绑死了；
      项目里统一用自己定义的 PageResult（total + records），前端拿到的数据结构永远一致，解耦、规范。
      最后return是要new一个对象去装返回结果的，不new就是个类
+
+3.
+  /**
+    * 根据id删除分类
+    * @param id
+    */
+    public void deleteById(Long id) {
+        //查询当前分类是否关联菜品，关联了就抛出业务异常
+        Integer count = dishMapper.countByCategoryId(id);
+        if(count > 0){
+            //当前分类下有菜品，不能删除
+            throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_DISH);
+        }
+        
+        //查询当前分类是否关联了套餐，如果关联了就抛出业务异常
+        count = setmealMapper.countByCategoryId(id);
+        if(count > 0){
+            //当前分类下有菜品，不能删除
+            throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_SETMEAL);
+        }
+        //删除分类数据
+        
+        categoryMapper.deleteById(id);
+  }
+
+public void deleteById(Long id) {
+  
+
+Integer count = dishMapper.countByCategoryId(id);
+        if(count > 0){
+            throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_DISH);
+        }
+  2
+
+count = setmealMapper.countByCategoryId(id);
+        if(count > 0){
+            throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_SETMEAL);
+            } 
+  2            
 ****************************************************************************************************************************************
 
 ------------------
