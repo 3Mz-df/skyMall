@@ -350,6 +350,8 @@ public class CategoryServiceImpl implements CategoryService{
 
 
 六个实现：
+
+
 1.
   /**
      * 新增分类
@@ -395,6 +397,7 @@ public class CategoryServiceImpl implements CategoryService{
      categoryMapper.insert(category);=================================================================
      存入数据库
 
+
 2.
   /**
      * 分页查询
@@ -427,6 +430,7 @@ return new PageResult(page.getTotal(), page.getResult());
   🤔多包一层 PageResult，不直接返回 Page， 因为 Page 是 PageHelper 插件的类型，和第三方插件绑死了；
      项目里统一用自己定义的 PageResult（total + records），前端拿到的数据结构永远一致，解耦、规范。
      最后return是要new一个对象去装返回结果的，不new就是个类
+
 
 3.
   /**
@@ -496,7 +500,8 @@ throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_SET
         category.setUpdateUser(BaseContext.getCurrentId());
         categoryMapper.update(category);
     }
-作用分析：
+作用分析：用DTO接收前端数据，调用工具类处理，最后调用mapper的东西切实修改数据库。这里修改人用到了线程的知识
+自带的拦截器会记录前端登录后传来的id并给他通行证（jwt），后面在登录拦截器就会验证，实现谁在登录的监控记录
 
 public void update(CategoryDTO categoryDTO) {
   定义修改方法 DTO给参数
@@ -535,13 +540,84 @@ ategoryMapper.update(category);
   categoryMapper：第 35 行用 @Autowired 注入进来的 Mapper 对象（MyBatis 动态代理生成的）
   .update(category)：调用 Mapper 接口里的 update 方法，把整理好的 category 交给它
   Mapper 拿到参数后，去 CategoryMapper.xml 里找到 id="update" 的 SQL 执行。
-  🤔动态SQL 后面再看吧 先跟着进度
-  
+  🤔动态SQL 后面再看吧 先跟着进度###TODO
+
+
+5.
+    /**
+     * 启用禁用分类
+     * @param status
+     * @param id
+     */
+    public void startOrStop(Integer status, Long id) {
+        Category category = Category.builder()
+                .id(id)
+                .status(status)
+                .updateTime(LocalDateTime.now())
+                .updateUser(BaseContext.getCurrentId())
+                .build();
+        categoryMapper.update(category);
+    }
+作用分析：点"禁用"→ 前端发 status=0；点"启用"→ 发 status=1（正好对应 StatusConstant.DISABLE=0 / ENABLE=1）
+
+public void startOrStop(Integer status, Long id) {
+  Integer
+    参数类型，包装类（对象），前端传来的状态值 0 或 1
+  status
+    参数名，方法体里用它拿状态值
+  Long
+    参数类型，分类的主键 id
+  id
+    参数名
+🤔无
+
+Category category = Category.builder()
+   Category
+     实体类（对应数据库表）。它头顶上有 Lombok 的 
+   @Builder
+     注解 在实体类里
+   .builder()：
+     @Builder 在编译时自动生成的一个静态方法，调用它会返回一个"建造器对象（CategoryBuilder）"。你可以把它想象成一张空白配置单
+   Category category = 
+     读到第 122 行 .build() 处把最终对象造出来，赋给 category
+   Builder（构建者）模式
+     builder() 拿到一张点单纸 → 一行行勾选"要什么" → 最后 .build() 交给店员，得到商品。 对应到这里：builder() 拿到 Category 的"配置单" → 勾选 id、status、时间、人 → .build() 造出 Category 对象。 
+🤔无
+
+categoryMapper.update(category);
+  调用Mapper接口
+🤔无
+
+
+6.
+    /**
+     * 根据类型查询分类
+     * @param type
+     * @return
+     */
+    public List<Category> list(Integer type) {
+        return categoryMapper.list(type);
+    }
+
+List<Category>
+  会自动扩容的"数组"，多一条数据就自动加个位置，用起来更灵活
+  <Category> 是泛型，相当于给列表贴了个标签："本列表只准装 Category 对象"。这样取数据时编译器知道类型，不用强转  🤔无
+
+return categoryMapper.list(type);
+  return
+    把结果交还给调用者（Controller）
+categoryMapper
+  第 36 行注入进来的 Mapper 对象（MyBatis 造的"替身"）
+.list(type)
+  调用它的 list 方法，把自己收到的 type 原封不动转交出去
+  整行的意思：我只是个中转站，参数给你，结果还我
+🤔这里实际工作都是在mapper那儿 这里就是个中转站这个说法也对
 ****************************************************************************************************************************************
 
 ------------------
 server-mapper包下新建 “模块名”Mapper 这里编写的是操控SQL的接口，实现类在server-resources-mapper包下 “模块名”Mapper.xml ；如果功能的业务逻辑差别大，可以单独把功能分出来比如在 “模块名”Mapper里分出 “功能名1”Mapper “功能名2”Mapper ...这些单独分出的也是操控SQL的接口，但是他不依赖xml去实现，要在本类下去注解实现（一般是复用不高或是简单的SQL语句）||
 --------------------------
+这里好多SQL语句 后面再看吧 先跟进度###TODO
 
 ****************************************************************************************************************************************
 
