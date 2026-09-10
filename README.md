@@ -1,5 +1,5 @@
 [README.md](https://github.com/user-attachments/files/32051560/README.md)
-<img width="1627" height="914" alt="d7ded3d26a1e9e17cfc3e1b21272109639682250" src="https://github.com/user-attachments/assets/f60fe5ac-ff7f-4a6c-b3d8-e35b27c7d7d6" />
+
 
 ---
 
