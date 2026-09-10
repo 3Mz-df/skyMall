@@ -481,6 +481,62 @@ throw new DeletionNotAllowedException(MessageConstant.CATEGORY_BE_RELATED_BY_SET
   自定义异常类 DeletionNotAllowedException（继承 BaseException）
   消息常量类 MessageConstant 里定义对应常量
   全局异常处理器 GlobalExceptionHandler 来捕获并返回给前端。
+
+
+4.
+    /**
+     * 修改分类
+     * @param categoryDTO
+     */
+    public void update(CategoryDTO categoryDTO) {
+        Category category = new Category();
+        BeanUtils.copyProperties(categoryDTO.category);
+        //设置修改时间，修改人
+        category.setUpdateTime(localDateTime.now());
+        category.setUpdateUser(BaseContext.getCurrentId());
+        categoryMapper.update(category);
+    }
+作用分析：
+
+public void update(CategoryDTO categoryDTO) {
+  定义修改方法 DTO给参数
+  CategoryDTO
+  DTO = Data Transfer Object（数据传输对象），专门用来装"前端传过来的数据"
+  categoryDTO
+  参数的变量名。起名习惯：类型名首字母小写。方法体里靠这个名字使用它
+  🤔无
+
+Category category = new Category();
+  new一个方法赋给category
+  🤔让Category这个实体类的东西能被引用
+    看 CategoryMapper 接口的声明：
+      void update(Category category);
+      它要的是 Category 类型。DTO 和 Entity 是两个不同的类型，不能混用。
+      所以必须"造一个新 Entity，再把数据搬进去"。
+
+BeanUtils.copyProperties(categoryDTO.category);
+  调用工具类的方法
+  🤔BeanUtils：Spring 框架提供的工具类，专门处理"对象之间的属性复制"
+    copyProperties：工具类里的静态方法（用 类名.方法名 直接调用，不用 new），意思是"复制属性"
+    两个参数：第一个是"源"（数据从哪来），第二个是"目标"（数据放到哪去） —— 顺序千万别记反
+
+category.setUpdateTime(localDateTime.now());
+category.setUpdateUser(BaseContext.getCurrentId());
+  调用Lombok自动生成的方法 也就是Category类下的东西
+  🤔这里有个线程，BaseContext：项目自己写的工具类（在 sky-common 里），里面装了一个 ThreadLocal<Long>
+    getCurrentId()：它的静态方法，把里面存的员工 id 取出来
+      这个 id 是怎么进去的？ 整个链路是：
+      管理员登录成功后，服务器发给他一张加密的"通行证"（JWT 令牌），里面记录了他的员工 id
+      之后每次请求都带着这张通行证 → interceptor 包里的登录拦截器先拦下来，验明正身，然后把员工 id 存进 BaseContext
+      到了本行代码，直接 getCurrentId() 就拿到"当前是谁在操作"
+      ThreadLocal 是什么？ 可以理解成"每个请求线程专属的储物柜"。一次 HTTP 请求由一个线程处理，储物柜里的东西只有这个线程能拿，多个用户同时改分类也不会串号。
+
+ategoryMapper.update(category);
+  categoryMapper：第 35 行用 @Autowired 注入进来的 Mapper 对象（MyBatis 动态代理生成的）
+  .update(category)：调用 Mapper 接口里的 update 方法，把整理好的 category 交给它
+  Mapper 拿到参数后，去 CategoryMapper.xml 里找到 id="update" 的 SQL 执行。
+  🤔动态SQL 后面再看吧 先跟着进度
+  
 ****************************************************************************************************************************************
 
 ------------------
