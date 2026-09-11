@@ -1027,9 +1027,17 @@ public List<Category> list(Integer type) {
 
 ---
 
-# 四、项目补充说明
+# 项目补充说明
 
 > 项目需求接口文档在 Apifox 里。
+> 添加了公共字段自动填充注解
+   D:\1、黑马程序员Java项目《苍穹外卖》企业级开发实战\资料\资料\day01\后端初始工程\sky-take-out\
+    sky-server\src\main\java\com\sky\annotation\AutoFill.java
+   D:\1、黑马程序员Java项目《苍穹外卖》企业级开发实战\资料\资料\day01\后端初始工程\sky-take-out\
+    sky-server\src\main\java\com\sky\aspect\AutoFillAspect.java
+   Serviceimpl里业务代码的一些方法不需要再对其对象进行赋值（公共属性不用再赋值），让业务代码更加纯粹
+
+
 
 | 功能 | 说明 |
 |:---|:---|
