@@ -21,7 +21,7 @@ public class Result<T> implements Serializable {
         return result;
     }
 
-    public static <T> Result<T> success(T object) {
+    public static <T> Result<T> success(T object) {  //形参T object
         Result<T> result = new Result<T>();
         result.data = object;
         result.code = 1;

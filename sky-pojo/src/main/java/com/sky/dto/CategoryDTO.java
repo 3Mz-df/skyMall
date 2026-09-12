@@ -7,6 +7,7 @@ import java.io.Serializable;
 @Data
 public class CategoryDTO implements Serializable {
 
+    public Object category;
     //主键
     private Long id;
 
