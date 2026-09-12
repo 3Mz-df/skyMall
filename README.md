@@ -1037,15 +1037,24 @@ public List<Category> list(Integer type) {
 # 项目补充说明
 
 > 项目需求接口文档在 Apifox 里。
+
+
 > 添加了公共字段自动填充注解 2026-9-11
+
    D:\1、黑马程序员Java项目《苍穹外卖》企业级开发实战\资料\资料\day01\后端初始工程\sky-take-out\
     sky-server\src\main\java\com\sky\annotation\AutoFill.java
+    
    D:\1、黑马程序员Java项目《苍穹外卖》企业级开发实战\资料\资料\day01\后端初始工程\sky-take-out\
     sky-server\src\main\java\com\sky\aspect\AutoFillAspect.java
+    
    Serviceimpl里业务代码的一些方法不需要再对其对象进行赋值（公共属性不用再赋值），让业务代码更加纯粹
+
+   
 > 添加了新增菜品和对应口味功能，逐条插入数据forEach基础知识点不懂 2026-9-12
 
 
+> 添加了菜品分页查询功能 2026-9-12
+ 
 | 功能 | 说明 |
 |:---|:---|
 | Swagger-Knife4j 接口文档 | 通过 swagger-knife4j 生成的接口文档在 server-config，前端 `/doc.html` 访问。登录调试可以拿到新 token |
