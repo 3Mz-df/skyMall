@@ -40,7 +40,7 @@ public class DishServiceimpl implements DishService {
      * 新增菜品和对应的口味
      */
     @Transient
-    public void saveWithFlavor(DishDTO dishDTO){
+    public void saveWithFlavor(DishDTO dishDTO) {
 
         Dish dish = new Dish();
 
@@ -54,7 +54,7 @@ public class DishServiceimpl implements DishService {
 
         //向口味表插入数据 n条
         List<DishFlavor> flavors = dishDTO.getFlavors();
-        if (flavors != null && flavors.size() > 0){
+        if (flavors != null && flavors.size() > 0) {
             flavors.forEach(dishFlavor -> {
                 dishFlavor.setDishId(dishId);
             });
@@ -66,6 +66,7 @@ public class DishServiceimpl implements DishService {
 
     /**
      * 菜品分页查询
+     *
      * @param dishPageQueryDTO
      * @return
      */
@@ -77,15 +78,16 @@ public class DishServiceimpl implements DishService {
 
     /**
      * 菜品批量删除
+     *
      * @param ids
      */
-    public void deleteBatch(List<Long> ids){
+    public void deleteBatch(List<Long> ids) {
         //判断当前菜品是否能够删除--是否存在起售中的菜品
         //遍历
         for (Long id : ids) {
             Dish dish = dishMapper.getById(id);
             //判断
-            if(dish.getStatus() == StatusConstant.ENABLE){
+            if (dish.getStatus() == StatusConstant.ENABLE) {
                 //当前菜品正在起售，不能删除
                 throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
                 //抛出程序异常，返回提示信息给前端
@@ -94,7 +96,7 @@ public class DishServiceimpl implements DishService {
 
         //判断当前菜品是否能够删除--是否被套餐关联
         List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(ids);
-        if(setmealIds != null && setmealIds.size() > 0){
+        if (setmealIds != null && setmealIds.size() > 0) {
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
         }
 
@@ -110,6 +112,54 @@ public class DishServiceimpl implements DishService {
 
         //根据菜品id集合批量删除关联的口味数据
         dishFlavorMapper.deleteByDishIds(ids);
+    }
 
+    /**
+     * 根据id查询菜品和对应口味数据
+     *
+     * @param id
+     * @return
+     */
+    public DishVO getByIdWithFlavor(Long id) {
+        //根据id查询菜品
+        Dish dish = dishMapper.getById(id);
+
+        //根据id查询口味数据
+        List<DishFlavor> dishFlavors = dishFlavorMapper.getByDishId(id);
+
+        //将查询到的数据封装到VO
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish, dishVO);
+        dishVO.setFlavors(dishFlavors);
+
+        return dishVO;
+    }
+
+    /**
+     * 根据菜品ID查询口味数据
+     *
+     * @param dishDTO
+     * @return
+     */
+    public void updateWithFlacor(DishDTO dishDTO) {
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+
+
+        //修改菜品表基本信息
+        dishMapper.update(dish);
+
+        //删除原有的口味数据
+        dishFlavorMapper.deleteByDishId(dishDTO.getId());
+
+        //重新插入口味数据
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        if (flavors != null && flavors.size() > 0) {
+            flavors.forEach(dishFlavor -> {
+                dishFlavor.setDishId(dishDTO.getId());
+            });
+            //向口味表插入数据 n条
+            dishFlavorMapper.insertBatch(flavors);
+        }
     }
 }
