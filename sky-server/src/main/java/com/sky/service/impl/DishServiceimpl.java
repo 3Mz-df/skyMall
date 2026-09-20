@@ -11,8 +11,7 @@ import com.sky.entity.DishFlavor;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
-import com.sky.mapper.SetmealDishMapper;
-import com.sky.mapper.SetmealMapper;
+import com.sky.mapper.setmealDishMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.beans.Transient;
 import java.util.List;
-import java.util.Properties;
 
 @Service
 @Slf4j
@@ -34,7 +32,7 @@ public class DishServiceimpl implements DishService {
     @Autowired
     private DishFlavorMapper dishFlavorMapper;
     @Autowired
-    private SetmealDishMapper setmealDishMapper;
+    private setmealDishMapper setmealDishMapper;
 
     /**
      * 新增菜品和对应的口味
