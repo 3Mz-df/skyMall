@@ -15,5 +15,9 @@ sky:
   redis:
     host: localhost
     port: 6379
-    password: 123456
+    # 本机 Redis 未设置密码，如需密码请取消注释并填写
+    # password: 123456
     database: 10
+  wechat:
+    appid:
+    secret:

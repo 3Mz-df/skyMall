@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
 
 /**
  * 配置类，用于创建AliOssUtil对象
