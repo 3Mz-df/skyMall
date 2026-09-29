@@ -86,4 +86,8 @@
         order by create_time desc
     </select>
 
+    <!--菜品起售停售-->
+    <update id="updateStatus" parameterType="com.sky.entity.Dish">
+        update dish set status = #{status} where id = #{id}
+    </update>
 </mapper>

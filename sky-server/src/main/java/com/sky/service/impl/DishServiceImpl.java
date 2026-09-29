@@ -198,4 +198,11 @@ public class DishServiceImpl implements DishService {
                 .build();
         return dishMapper.list(dish);
     }
+
+    /**
+     * 菜品起售停售
+     */
+    public void starOrStop(Integer status, Long id) {
+        dishMapper.updateStatus(status, id);
+    }
 }
