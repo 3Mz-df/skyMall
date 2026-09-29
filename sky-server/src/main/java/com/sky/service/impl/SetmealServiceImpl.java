@@ -40,24 +40,18 @@ public class SetmealServiceImpl implements SetmealService {
     @Autowired
     private SetmealDishMapper setmealDishMapper;
 
-    /**
-     * 条件查询
-     * @param setmeal
-     * @return
-     */
-    public List<Setmeal> list(Setmeal setmeal) {
-        List<Setmeal> list = setmealMapper.list(setmeal);
-        return list;
-    }
+
 
     /**
-     * 根据id查询菜品选项
+     * 根据id查询菜品选项 C
      * @param id
      * @return
      */
     public List<DishItemVO> getDishItemById(Long id) {
         return setmealMapper.getDishItemBySetmealId(id);
     }
+
+
 
 
     @Transactional
@@ -184,5 +178,17 @@ public class SetmealServiceImpl implements SetmealService {
                 .status(status)
                 .build();
         setmealMapper.update(setmeal);
+    }
+
+
+
+    /**
+     * 条件查询  C
+     * @param setmeal
+     * @return
+     */
+    public List<Setmeal> list(Setmeal setmeal) {
+        List<Setmeal> list = setmealMapper.list(setmeal);
+        return list;
     }
     }
