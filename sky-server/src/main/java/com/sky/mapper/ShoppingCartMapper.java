@@ -2,6 +2,7 @@ package com.sky.mapper;
 
 import com.sky.entity.ShoppingCart;
 import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
 @Mapper
 public interface ShoppingCartMapper {
     /**
-     * 根据条件查询购物车数据 （判断非空）
+     * 根据条件查询购物车数据 动态 （判断非空）
      * @param shoppingCart
      * @return
      */
@@ -29,4 +30,13 @@ public interface ShoppingCartMapper {
      */
     @Delete("delete from shopping_cart where id = #{id}")
     void deleteById(Long id);
+
+
+    /**
+     *插入购物车数据
+     * @param shoppingCart
+     */
+    @Insert("insert into shopping_cart (user_id, dish_id, setmeal_id, name, amount, image, number, create_time) " +
+            "values (#{userId}, #{dishId}, #{setmealId}, #{name}, #{amount}, #{image}, #{number}, #{createTime})")
+    void insert(ShoppingCart shoppingCart);
 }
