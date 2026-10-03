@@ -1,5 +1,6 @@
 package com.sky.controller.user;
 
+import com.sky.dto.OrdersSubmitDTO;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.vo.OrderSubmitVO;
@@ -23,14 +24,14 @@ public class OrderController {
 
     /**
      * 用户下单
-     * @param orderSubmitDTO
+     * @param ordersSubmitDTO
      * @return
      */
     @PostMapping("/submit")
     @ApiOperation("用户下单接口")
-    public Result<OrderSubmitVO> submit(@RequestBody OrderSubmitDTO orderSubmitDTO){
-        log.info("用户下单, 参数为：{}", orderSubmitDTO);
-        OrderSubmitVO orderSubmitVO = orderService.submitOrder(orderSubmitDTO);
+    public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO){
+        log.info("用户下单, 参数为：{}", ordersSubmitDTO);
+        OrderSubmitVO orderSubmitVO = orderService.submitOrder(ordersSubmitDTO);
         return Result.success(orderSubmitVO);
     }
 }
