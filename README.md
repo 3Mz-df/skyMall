@@ -1103,6 +1103,9 @@ public List<Category> list(Integer type) {
 >完善用户下单功能 2026-10-3
 
 
+>增加微信支付功能 2026-10-10 
+
+
 | 功能 | 说明 |
 |:---|:---|
 | Swagger-Knife4j 接口文档 | 通过 swagger-knife4j 生成的接口文档在 server-config，前端 `/doc.html` 访问。登录调试可以拿到新 token |
