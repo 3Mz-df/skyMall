@@ -1103,7 +1103,7 @@ public List<Category> list(Integer type) {
 >完善用户下单功能 2026-10-3
 
 
->增加微信支付功能 2026-10-10 
+>增加微信支付功能（订单支付） 2026-10-10 
 
 
 >增加BC端订单管理相关功能（完善中） 2026-10-11 
@@ -1143,16 +1143,33 @@ public List<Category> list(Integer type) {
 
 
 >增加检验收货地址是否超出配送范围功能（未配置商家地址和百度地图的AK） 2026-10-14
+ 
+ 
+>Spring Task 定时任务学习 2026-10-19
+ 
+
+>增加超时未支付、超时未确认收货订单定时自动取消、清除功能 2026-10-19
+
+
+>WebSocket(网络协议) 案例一 学习 2026-10-19
 
 
 | 功能 | 说明 |
 |:---|:---|
 | Swagger-Knife4j 接口文档 | 通过 swagger-knife4j 生成的接口文档在 server-config，前端 `/doc.html` 访问。登录调试可以拿到新 token |
+
 | Token 有效时间 | 接口文档里的全局参数设置 token 有效时间改成了 24h。实现：server-resources-application.yml 里 admin-ttl: |
+
+
+2026-09-??
 | MD5 加密 | server-service-EmployeeServicelmpl 里添加了 md5 加密，新增员工功能。还有个 TODO（已解决） |
+
 | SQL 异常处理 | server-handler-GlobalExcptionHandler 里添加了处理 SQL 异常，新增重复员工抛出错误，程序不再崩溃 |
+
 | 员工账号分页查询 | 添加了员工账号分页查询功能，DTO 的东西、SQL 语句符号的应用、用了个 mybatis 的插件"Pagehelper" |
+
 | 启用禁用员工账号 | 添加了启用禁用员工账号功能，SQL 语句符号的应用 |
+
 | 根据id查询/编辑员工 | 添加了根据 id 查询员工，编辑员工信息功能 |
 
 ---
