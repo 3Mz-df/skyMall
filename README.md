@@ -1166,6 +1166,12 @@ public List<Category> list(Integer type) {
 >用户统计功能 2026-10-21
 
 
+>订单统计功能 2026-10-23 
+
+
+>销量排名功能 2026-10-23 
+
+
 | 功能 | 说明 |
 |:---|:---|
 | Swagger-Knife4j 接口文档 | 通过 swagger-knife4j 生成的接口文档在 server-config，前端 `/doc.html` 访问。登录调试可以拿到新 token |
