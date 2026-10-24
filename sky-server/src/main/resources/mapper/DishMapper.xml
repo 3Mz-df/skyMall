@@ -90,4 +90,12 @@
     <update id="updateStatus" parameterType="com.sky.entity.Dish">
         update dish set status = #{status} where id = #{id}
     </update>
+
+    <select id="countByMap" resultType="java.lang.Integer">
+        select count(id) from dish
+        <where>
+            <if test="status != null"> and status = #{status} </if>
+            <if test="categoryId != null"> and category_id = #{categoryId} </if>
+        </where>
+    </select>
 </mapper>
